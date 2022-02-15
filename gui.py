@@ -32,7 +32,7 @@ class GUI():
 
         print("Creating finder...")
         self.finder = ServerFinder(finder_config[0], finder_config[1], self)
-        print("Created finder object")
+        print("Created finder object                                   ")
 
     def start(self):
         input_text = ""

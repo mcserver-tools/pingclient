@@ -4,6 +4,7 @@ from time import sleep
 
 from pingclient.communicator import Communicator
 from pingclient.find_thread import FindThread
+from pingclient.discordrpc_helper import DiscordRpcHelper
 
 class ServerFinder():
     def __init__(self, max_threads, max_passes, gui) -> None:
@@ -18,6 +19,7 @@ class ServerFinder():
         self._cancel = False
 
         self._gui = gui
+        self._dcrpc_helper = DiscordRpcHelper()
 
     def run(self):
         while not Communicator().server_pingable():
@@ -93,9 +95,15 @@ class ServerFinder():
 
     def _gui_func(self):
         start_time = datetime.now()
+        c = 1
         sleep(1)
         while self._running_threads > 0:
             sleep(0.25)
             print("Responded: " + str(self._responded_count) + ", No response: " + str(self._not_responded_count) + ", Total: " + str(self._responded_count + self._not_responded_count) + "/" + str(self._total_addresses) + ", Elapsed: " + str(datetime.now() - start_time).split(".")[0], end="\r")
+            if c >= 12:
+                c = 0
+                self._dcrpc_helper.update(self._responded_count, self._not_responded_count, self._total_addresses)
+            c += 1
 
+        self._dcrpc_helper.update(self._responded_count, self._not_responded_count, self._total_addresses, reset=True)
         print("Responded: " + str(self._responded_count) + ", No response: " + str(self._not_responded_count) + ", Total: " + str(self._responded_count + self._not_responded_count) + "/" + str(self._total_addresses) + ", Elapsed: " + str(datetime.now() - start_time).split(".")[0])
