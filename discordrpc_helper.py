@@ -47,19 +47,22 @@ class DiscordRpcHelper():
         discord_rpc.run_callbacks()
 
     def readyCallback(self, current_user):
-            # print('Connected to user: {}'.format(current_user))
+        # print('Connected to user: {}'.format(current_user))
+        if not self.initialized:
             print(f"Connected to user: {current_user['username']}#{current_user['discriminator']}                                            ")
             self.initialized = True
 
     def disconnectedCallback(self, codeno, codemsg):
-        print('Disconnected from Discord rich presence. Code {}: {}                                        '.format(
-            codeno, codemsg
-        ))
+        # print('Disconnected from Discord rich presence. Code {}: {}                                        '.format(
+        #     codeno, codemsg
+        # ))
+        pass
 
     def errorCallback(self, errno, errmsg):
-        print('An error occurred! Error {}: {}                                                  '.format(
-            errno, errmsg
-        ))
+        # print('An error occurred! Error {}: {}                                                  '.format(
+        #     errno, errmsg
+        # ))
+        pass
 
 if __name__ == "__main__":
     DiscordRpcHelper()
