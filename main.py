@@ -1,6 +1,5 @@
-from pingclient.gui import GUI
+from pingclient.client import Client
 
 if __name__ == "__main__":
-    gui = GUI()
-    gui.init()
-    gui.start()
+    client = Client()
+    client.run()

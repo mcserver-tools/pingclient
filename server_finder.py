@@ -1,13 +1,15 @@
 from datetime import datetime
 from threading import Thread
+import time
 from time import sleep
 
 from pingclient.communicator import Communicator
 from pingclient.find_thread import FindThread
 from pingclient.discordrpc_helper import DiscordRpcHelper
+from pingclient.session_info import SessionInfo
 
 class ServerFinder():
-    def __init__(self, max_threads, max_passes, gui) -> None:
+    def __init__(self, max_threads, max_passes, gui_update_func) -> None:
         self._max_threads = max_threads
         self._max_passes = max_passes
 
@@ -18,7 +20,7 @@ class ServerFinder():
         self.active_addresses = [["0.0.0.0", []]]
         self._cancel = False
 
-        self._gui = gui
+        self._gui_update_func = gui_update_func
         self._dcrpc_helper = DiscordRpcHelper()
 
     def run(self):
@@ -37,8 +39,11 @@ class ServerFinder():
         self._not_responded_count = 0
         self.active_addresses.clear()
         self._cancel = False
+        self._start_time = datetime.now()
 
+        # Thread(target=self._cli_func).start()
         Thread(target=self._gui_func).start()
+        Thread(target=self._dcrpc_func).start()
         Thread(target=self._keepalive_func).start()
 
         index_c = 0
@@ -94,16 +99,31 @@ class ServerFinder():
             sleep(5)
 
     def _gui_func(self):
-        start_time = datetime.now()
-        c = 1
         sleep(1)
         while self._running_threads > 0:
-            sleep(0.25)
-            print("Responded: " + str(self._responded_count) + ", No response: " + str(self._not_responded_count) + ", Total: " + str(self._responded_count + self._not_responded_count) + "/" + str(self._total_addresses) + ", Elapsed: " + str(datetime.now() - start_time).split(".")[0], end="\r")
-            if c >= 12:
-                c = 0
-                self._dcrpc_helper.update(self._responded_count, self._not_responded_count, self._total_addresses)
-            c += 1
+            start_time = time.time()
+            session_info = SessionInfo([item[1] for item in self.active_addresses], self._total_addresses, self._responded_count, self._not_responded_count, (datetime.now() - self._start_time), self._max_threads, self._running_threads)
+            self._gui_update_func(session_info)
+            sleep(1.0 - (time.time() - start_time))
+
+        session_info = SessionInfo([item[1] for item in self.active_addresses], self._total_addresses, self._responded_count, self._not_responded_count, (datetime.now() - self._start_time), self._max_threads, self._running_threads)
+        self._gui_update_func(session_info)
+
+    def _cli_func(self):
+        sleep(1)
+        while self._running_threads > 0:
+            start_time = time.time()
+            print("Responded: " + str(self._responded_count) + ", No response: " + str(self._not_responded_count) + ", Total: " + str(self._responded_count + self._not_responded_count) + "/" + str(self._total_addresses) + ", Elapsed: " + str(datetime.now() - self._start_time).split(".")[0], end="\r")
+            sleep(0.5 - (time.time() - start_time))
 
         self._dcrpc_helper.update(self._responded_count, self._not_responded_count, self._total_addresses, reset=True)
-        print("Responded: " + str(self._responded_count) + ", No response: " + str(self._not_responded_count) + ", Total: " + str(self._responded_count + self._not_responded_count) + "/" + str(self._total_addresses) + ", Elapsed: " + str(datetime.now() - start_time).split(".")[0])
+        print("Responded: " + str(self._responded_count) + ", No response: " + str(self._not_responded_count) + ", Total: " + str(self._responded_count + self._not_responded_count) + "/" + str(self._total_addresses) + ", Elapsed: " + str(datetime.now() - self._start_time).split(".")[0])
+
+    def _dcrpc_func(self):
+        sleep(1)
+        while self._running_threads > 0:
+            start_time = time.time()
+            self._dcrpc_helper.update(self._responded_count, self._not_responded_count, self._total_addresses)
+            sleep(3.0 - (time.time() - start_time))
+
+        self._dcrpc_helper.update(self._responded_count, self._not_responded_count, self._total_addresses)
