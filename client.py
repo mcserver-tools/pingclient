@@ -11,12 +11,20 @@ class Client():
 
     def run(self):
         # Thread(target=self.add_thread_func).start()
-        Thread(target=self._finder.run).start()
+        Thread(target=self._run_finder).start()
         self._start_gui()
 
     def _start_gui(self):
         self._gui = Gui()
         self._gui.run()
+
+    def _run_finder(self):
+        for _ in range(5):
+            self._finder.run()
+            sleep(1)
+            while self._finder._running_threads > 0:
+                sleep(1)
+            sleep(1)
 
     def _init_finder(self):
         print("Starting client...")
@@ -46,12 +54,3 @@ class Client():
 
     def _update_gui(self, session_info):
         self._gui.queue.put(session_info)
-
-    def add_thread_func(self):
-        for item in range(5):
-            sleep(0.5)
-            self.add_item_to_queue(item)
-
-    def add_item_to_queue(self, item):
-        self._gui.queue.put(f"Test|test|tst|{item}")
-        self._gui.queue.put(self)
