@@ -116,7 +116,6 @@ class ServerFinder():
             print("Responded: " + str(self._responded_count) + ", No response: " + str(self._not_responded_count) + ", Total: " + str(self._responded_count + self._not_responded_count) + "/" + str(self._total_addresses) + ", Elapsed: " + str(datetime.now() - self._start_time).split(".")[0], end="\r")
             sleep(0.5 - (time.time() - start_time))
 
-        self._dcrpc_helper.update(self._responded_count, self._not_responded_count, self._total_addresses, reset=True)
         print("Responded: " + str(self._responded_count) + ", No response: " + str(self._not_responded_count) + ", Total: " + str(self._responded_count + self._not_responded_count) + "/" + str(self._total_addresses) + ", Elapsed: " + str(datetime.now() - self._start_time).split(".")[0])
 
     def _dcrpc_func(self):

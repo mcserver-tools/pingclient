@@ -23,13 +23,13 @@ class DiscordRpcHelper():
             print("Waiting for discord rpc...", end="\r")
             self.show_rpc()
 
-    def update(self, responded_count, not_responded_count, total_count, reset=False):
-        self.total_pings += (responded_count + not_responded_count) - self.last_sent
+    def update(self, responded_count, not_responded_count, total_count):
+        if self.last_sent > (responded_count + not_responded_count):
+            self.last_sent = (responded_count + not_responded_count)
 
-        if not reset:
-            self.last_sent = responded_count + not_responded_count
-        else:
-            self.last_sent = 0
+        self.total_pings += ((responded_count + not_responded_count) - self.last_sent)
+
+        self.last_sent = (responded_count + not_responded_count)
 
         discord_rpc.update_presence(**{
             "details": f"Responded: {responded_count}, Total: {responded_count + not_responded_count}/{total_count}",
