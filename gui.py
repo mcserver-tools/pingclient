@@ -1,10 +1,11 @@
 from datetime import datetime, timedelta
+from threading import Thread
 import tkinter
 from queue import Queue
 from ctypes import WinDLL, windll
 
 class Gui():
-    def __init__(self) -> None:
+    def __init__(self, exit_func, cancel_func) -> None:
         self._size = (48, 64)
         self._colors = ("#C1C1C1", "#464545")
 
@@ -23,11 +24,16 @@ class Gui():
         self._total_active_time = tkinter.StringVar(value="")
         self._thread_counter = tkinter.StringVar(value="0/0")
 
+        self._exit_text = tkinter.StringVar(value="Exit after current pass")
+        self._exit_immediately_text = tkinter.StringVar(value="Exit immediately")
+
         self._last_responded_count = 0
         self._last_total_count = 0
         self._last_active_time = None
 
         self.queue = Queue(maxsize=0)
+        self._exit_func = exit_func
+        self._cancel_func = cancel_func
 
         self._add_labels()
 
@@ -49,6 +55,10 @@ class Gui():
         self._add_placeholder_label()
 
         self._add_working_addresses_labels()
+
+        self._add_placeholder_label()
+
+        self._add_buttons()
 
         self._add_placeholder_label()
 
@@ -135,9 +145,40 @@ class Gui():
         working_addresses = tkinter.Label(addresses_frame, textvariable=self._working_addresses)
         working_addresses.pack(side=tkinter.TOP)
 
+    def _add_buttons(self):
+        button_frame = tkinter.Frame(self._main_frame, width=int(self._size[0]*6), height=int(self._size[1]/2), highlightbackground=self._colors[0], highlightthickness=1)
+        button_frame.pack_propagate(False)
+        button_frame.pack(side=tkinter.TOP)
+
+        exit_button = tkinter.Button(button_frame, textvariable=self._exit_text, command=self._exit_after_passes_func, anchor="e")
+        exit_button.pack(side=tkinter.LEFT)
+
+        exit_immediately_button = tkinter.Button(button_frame, textvariable=self._exit_immediately_text, command=self._exit_immediately_func, anchor="w")
+        exit_immediately_button.pack(side=tkinter.RIGHT)
+
     def _add_placeholder_label(self):
         placeholder_label = tkinter.Label(self._main_frame)
         placeholder_label.pack(side=tkinter.TOP)
+
+    def _exit_after_passes_func(self):
+        if self._exit_immediately_text.get() != "Exit immediately":
+            return
+        Thread(target=self._exit_thread_func, args=[self._exit_func]).start()
+        if self._exit_text.get() == "Exit after current pass":
+            self._exit_text.set("Exiting after current pass")
+        else:
+            self._exit_text.set("Exit after current pass")
+
+    def _exit_immediately_func(self):
+        if self._exit_text.get() != "Exit after current pass":
+            return
+        if self._exit_immediately_text.get() == "Exit immediately":
+            self._exit_immediately_text.set("Exiting...")
+            Thread(target=self._exit_thread_func, args=[self._cancel_func]).start()
+
+    def _exit_thread_func(self, func):
+        if func():
+            self._root.quit()
 
     def _read_queue(self):
         if not self.queue.empty():
@@ -153,6 +194,8 @@ class Gui():
     def _update_global_stats(self, session_info):
         if self._last_total_count > (session_info.responded_count + session_info.not_responded_count):
             self._last_total_count = (session_info.responded_count + session_info.not_responded_count)
+        if self._last_responded_count > session_info.responded_count:
+            self._last_responded_count = session_info.responded_count
         responded = (int(self._total_responded_count.get().split("/")[0]) + (session_info.responded_count - self._last_responded_count))
         total = (int(self._total_responded_count.get().split("/")[1]) + (session_info.responded_count + session_info.not_responded_count) - self._last_total_count)
         right = f"{responded}/{total}"

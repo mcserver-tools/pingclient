@@ -10,6 +10,7 @@ class FindThread():
     def ping_all(self):
         for address in self._addresses:
             if self._server_finder._cancel:
+                self._server_finder._running_threads -= 1
                 return
             self._ping_address(address)
 

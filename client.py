@@ -7,6 +7,8 @@ from pingclient.server_finder import ServerFinder
 class Client():
     def __init__(self) -> None:
         self._finder = None
+        self._exit = False
+
         self._init_finder()
 
     def run(self):
@@ -14,12 +16,31 @@ class Client():
         Thread(target=self._run_finder).start()
         self._start_gui()
 
+    def exit(self):
+        self._exit = not self._exit
+
+        while self._finder._running_threads > 0:
+            if not self._exit:
+                return False
+            sleep(1)
+        return True
+
+    def cancel(self):
+        self._exit = not self._exit
+        self._finder.cancel()
+
+        while self._finder._running_threads > 0:
+            if not self._exit:
+                return False
+            sleep(1)
+        return True
+
     def _start_gui(self):
-        self._gui = Gui()
+        self._gui = Gui(self.exit, self.cancel)
         self._gui.run()
 
     def _run_finder(self):
-        for _ in range(5):
+        while not self._exit:
             self._finder.run()
             sleep(1)
             while self._finder._running_threads > 0:

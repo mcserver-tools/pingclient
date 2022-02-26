@@ -33,12 +33,14 @@ class ServerFinder():
 
         self._search()
 
+    def cancel(self):
+        self._cancel = True
+
     def _search(self):
         self._total_addresses = 0
         self._responded_count = 0
         self._not_responded_count = 0
         self.active_addresses.clear()
-        self._cancel = False
         self._start_time = datetime.now()
 
         # Thread(target=self._cli_func).start()
@@ -50,6 +52,8 @@ class ServerFinder():
         for addresses in self._get_addresses():
             if addresses == "Next":
                 index_c += 1
+            elif addresses == None:
+                break
             else:
                 while self._running_threads >= self._max_threads:
                     sleep(0.05)
@@ -60,6 +64,9 @@ class ServerFinder():
 
         while self._running_threads > 0:
             sleep(1)
+
+        if self._cancel:
+            return
 
         sleep(1)
         for item in self.active_addresses:
@@ -86,6 +93,8 @@ class ServerFinder():
                         addresses.clear()
             yield addresses.copy()
             addresses.clear()
+
+        yield None
 
     def _keepalive_func(self):
         sleep(1)
