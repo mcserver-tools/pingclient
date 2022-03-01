@@ -1,20 +1,25 @@
+"""Module containing the DiscordRpcHelper class"""
+
 import time
 
 import discord_rpc
 
 class DiscordRpcHelper():
+    """Class containing helping functions for the discord rich presence"""
+
     def __init__(self):
         self.initialized = False
         self.start_time = time.time()
         self.total_pings = 0
         self.last_sent = 0
 
-        token = open("pingclient/dc_token.txt", "r").readline()
-        # Note: 'event_name': callback
+        with open("pingclient/dc_token.txt", "r", encoding="utf8") as file:
+            token = file.readline()
+
         callbacks = {
-            'ready': self.readyCallback,
-            'disconnected': self.disconnectedCallback,
-            'error': self.errorCallback,
+            'ready': self.ready_callback,
+            'disconnected': self.disconnected_callback,
+            'error': self.error_callback,
         }
 
         discord_rpc.initialize(token, callbacks=callbacks, log=False)
@@ -24,6 +29,8 @@ class DiscordRpcHelper():
             self.show_rpc()
 
     def update(self, responded_count, not_responded_count, total_count):
+        """Update stats shown in the discord rpc"""
+
         if self.last_sent > (responded_count + not_responded_count):
             self.last_sent = (responded_count + not_responded_count)
 
@@ -32,37 +39,49 @@ class DiscordRpcHelper():
         self.last_sent = (responded_count + not_responded_count)
 
         discord_rpc.update_presence(**{
-            "details": f"Responded: {responded_count}, Total: {responded_count + not_responded_count}/{total_count}",
+            "details": f"Responded: {responded_count}, Total: " +
+                       f"{responded_count + not_responded_count}/{total_count}",
             "state": f"{self.total_pings} pings sent since starting",
             "start_timestamp": self.start_time,
             "large_image_key": "default"})
         self.show_rpc()
 
-    def exit(self):
+    @staticmethod
+    def exit():
+        """Exit discord rich presence"""
+
         discord_rpc.shutdown()
 
-    def show_rpc(self):
+    @staticmethod
+    def show_rpc():
+        """Update discord rich presence"""
+
         discord_rpc.update_connection()
         time.sleep(2)
         discord_rpc.run_callbacks()
 
-    def readyCallback(self, current_user):
+    def ready_callback(self, current_user):
+        """Callback when the discord rpc is ready"""
+
         # print('Connected to user: {}'.format(current_user))
         if not self.initialized:
-            print(f"Connected to user: {current_user['username']}#{current_user['discriminator']}                                            ")
+            print(f"Connected to user: {current_user['username']}#" +
+                  f"{current_user['discriminator']}                                            ")
             self.initialized = True
 
-    def disconnectedCallback(self, codeno, codemsg):
-        # print('Disconnected from Discord rich presence. Code {}: {}                                        '.format(
+    def disconnected_callback(self, codeno, codemsg):
+        """Callback when the discord rpc disconnects"""
+
+        # print('Disconnected from Discord rich presence. Code {}: {}'.format(
         #     codeno, codemsg
         # ))
-        pass
 
-    def errorCallback(self, errno, errmsg):
-        # print('An error occurred! Error {}: {}                                                  '.format(
+    def error_callback(self, errno, errmsg):
+        """Callback when the discord rpc errored"""
+
+        # print('An error occurred! Error {}: {}'.format(
         #     errno, errmsg
         # ))
-        pass
 
 if __name__ == "__main__":
     DiscordRpcHelper()

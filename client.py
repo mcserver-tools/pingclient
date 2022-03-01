@@ -1,3 +1,5 @@
+"""Module containing the Client class"""
+
 from threading import Thread
 from time import sleep
 
@@ -5,49 +7,65 @@ from pingclient.gui import Gui
 from pingclient.server_finder import ServerFinder
 
 class Client():
+    """Class containing the main client functions"""
+
     def __init__(self) -> None:
+        self._gui = None
         self._finder = None
         self._exit = False
 
         self._init_finder()
 
     def run(self):
+        """Run the client"""
+
         # Thread(target=self.add_thread_func).start()
         Thread(target=self._run_finder).start()
         self._start_gui()
 
     def exit(self):
+        """Exit after the current pass"""
+
         self._exit = not self._exit
 
-        while self._finder._running_threads > 0:
+        while self._finder.running_threads > 0:
             if not self._exit:
                 return False
             sleep(1)
         return True
 
     def cancel(self):
+        """Exit immediately"""
+
         self._exit = not self._exit
         self._finder.cancel()
 
-        while self._finder._running_threads > 0:
+        while self._finder.running_threads > 0:
             if not self._exit:
                 return False
             sleep(1)
         return True
 
     def _start_gui(self):
+        """Start the GUI"""
+
         self._gui = Gui(self.exit, self.cancel)
+        self._gui.add_labels()
         self._gui.run()
 
     def _run_finder(self):
+        """Start pinging addresses"""
+
         while not self._exit:
             self._finder.run()
             sleep(1)
-            while self._finder._running_threads > 0:
+            while self._finder.running_threads > 0:
                 sleep(1)
             sleep(1)
 
     def _init_finder(self):
+        """Initialize the client"""
+
         print("Starting client...")
         print("")
 
@@ -74,4 +92,6 @@ class Client():
         print("")
 
     def _update_gui(self, session_info):
+        """Add SessionInfo object to the GUI queue"""
+
         self._gui.queue.put(session_info)
