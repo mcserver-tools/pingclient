@@ -54,7 +54,7 @@ class Communicator():
         return answer == "200 OK"
 
     def _send(self, sock, text):
-        """Send string to thegiven socket"""
+        """Send string to the given socket"""
 
         sock.send(self._string_to_bytes(text))
 

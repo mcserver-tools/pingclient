@@ -67,7 +67,7 @@ class ServerFinder():
         Thread(target=self._dcrpc_func).start()
         Thread(target=self._keepalive_func).start()
 
-        index_c = 0
+        index_c = -1
         for addresses in self._get_addresses():
             if addresses == "Next":
                 index_c += 1

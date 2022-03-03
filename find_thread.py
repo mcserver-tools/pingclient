@@ -37,3 +37,8 @@ class FindThread():
             raise gaierror(f"Address {address} can't be read!") from gaierr
         except IOError:
             self._server_finder._not_responded_count += 1
+        except IndexError as ierr:
+            if "bytearray index out of range" in ierr.args:
+                self._server_finder._not_responded_count += 1
+            else:
+                raise ierr
