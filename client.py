@@ -23,6 +23,14 @@ class Client():
         Thread(target=self._run_finder).start()
         self._start_gui()
 
+    def toggle_dcrpc(self):
+        """Toggle the discord rpc once"""
+
+        if self._finder.dcrpc_helper.initialized:
+            self._finder.dcrpc_helper.exit()
+        else:
+            self._finder.dcrpc_helper.initialize()
+
     def exit(self):
         """Exit after the current pass"""
 
@@ -49,7 +57,7 @@ class Client():
     def _start_gui(self):
         """Start the GUI"""
 
-        self._gui = Gui(self.exit, self.cancel)
+        self._gui = Gui(self.toggle_dcrpc, self._finder.pause, self.exit, self.cancel)
         self._gui.add_labels()
         self._gui.run()
 

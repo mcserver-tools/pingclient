@@ -1,6 +1,7 @@
 """Module containing the FindThread class"""
 
 from socket import gaierror
+from time import sleep
 
 from mcstatus import MinecraftServer
 
@@ -21,6 +22,9 @@ class FindThread():
             if self._server_finder.canceled:
                 self._server_finder._running_threads -= 1
                 return
+            if self._server_finder.paused:
+                while self._server_finder.paused:
+                    sleep(0.1)
             self._ping_address(address)
 
         self._server_finder._running_threads -= 1
@@ -42,3 +46,8 @@ class FindThread():
                 self._server_finder._not_responded_count += 1
             else:
                 raise ierr
+        except Exception as err:
+            print(f"Running threads: {self._server_finder._running_threads}")
+            print(f"Active addresses: {self._server_finder.active_addresses}")
+            print(f"index_c: {self._index_c}")
+            raise err

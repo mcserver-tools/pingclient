@@ -13,6 +13,7 @@ class DiscordRpcHelper():
         self.total_pings = 0
         self.last_sent = 0
 
+    def initialize(self):
         with open("pingclient/dc_token.txt", "r", encoding="utf8") as file:
             token = file.readline()
 
@@ -46,11 +47,11 @@ class DiscordRpcHelper():
             "large_image_key": "default"})
         self.show_rpc()
 
-    @staticmethod
-    def exit():
+    def exit(self):
         """Exit discord rich presence"""
 
         discord_rpc.shutdown()
+        self.initialized = False
 
     @staticmethod
     def show_rpc():
@@ -66,7 +67,7 @@ class DiscordRpcHelper():
         # print('Connected to user: {}'.format(current_user))
         if not self.initialized:
             print(f"Connected to user: {current_user['username']}#" +
-                  f"{current_user['discriminator']}                                            ")
+                  f"{current_user['discriminator']}                                   ", end="\r")
             self.initialized = True
 
     def disconnected_callback(self, codeno, codemsg):

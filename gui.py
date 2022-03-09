@@ -11,7 +11,7 @@ from threading import Thread
 class Gui():
     """Class containing GUI-related functions"""
 
-    def __init__(self, exit_func, cancel_func) -> None:
+    def __init__(self, dcrpc_func, pause_func, exit_func, cancel_func) -> None:
         """Initialize the Gui"""
 
         self._size = (48, 64)
@@ -33,6 +33,7 @@ class Gui():
         self._total_active_time = tkinter.StringVar(value="")
         self._thread_counter = tkinter.StringVar(value="0/0")
 
+        self._pause_text = tkinter.StringVar(value="Pause")
         self._exit_text = tkinter.StringVar(value="Exit after current pass")
         self._exit_immediately_text = tkinter.StringVar(value="Exit immediately")
 
@@ -41,6 +42,8 @@ class Gui():
         self._last_active_time = None
 
         self.queue = Queue(maxsize=0)
+        self._dcrpc_func = dcrpc_func
+        self._pause_func = pause_func
         self._exit_func = exit_func
         self._cancel_func = cancel_func
 
@@ -181,20 +184,33 @@ class Gui():
         working_addresses.pack(side=tkinter.TOP)
 
     def _add_buttons(self):
-        """Add buttons to exit"""
+        """Add buttons"""
 
-        button_frame = tkinter.Frame(self._main_frame, width=int(self._size[0]*6),
+        other_buttons_frame = tkinter.Frame(self._main_frame, width=int(self._size[0]*6),
                                      height=int(self._size[1]/2),
                                      highlightbackground=self._colors[0],
                                      highlightthickness=1)
-        button_frame.pack_propagate(False)
-        button_frame.pack(side=tkinter.TOP)
+        other_buttons_frame.pack_propagate(False)
+        other_buttons_frame.pack(side=tkinter.TOP)
 
-        exit_button = tkinter.Button(button_frame, textvariable=self._exit_text,
+        dcrpc_checkbox = tkinter.Checkbutton(other_buttons_frame, text="Discord rpc", command=self._dcrpc_func)
+        dcrpc_checkbox.pack(side=tkinter.LEFT)
+
+        pause_button = tkinter.Button(other_buttons_frame, textvariable=self._pause_text, command=self._pause_and_change_text_func)
+        pause_button.pack(side=tkinter.RIGHT)
+
+        exit_button_frame = tkinter.Frame(self._main_frame, width=int(self._size[0]*6),
+                                     height=int(self._size[1]/2),
+                                     highlightbackground=self._colors[0],
+                                     highlightthickness=1)
+        exit_button_frame.pack_propagate(False)
+        exit_button_frame.pack(side=tkinter.TOP)
+
+        exit_button = tkinter.Button(exit_button_frame, textvariable=self._exit_text,
                                      command=self._exit_after_passes_func, anchor="e")
         exit_button.pack(side=tkinter.LEFT)
 
-        exit_immediately_button = tkinter.Button(button_frame,
+        exit_immediately_button = tkinter.Button(exit_button_frame,
                                                  textvariable=self._exit_immediately_text,
                                                  command=self._exit_immediately_func, anchor="w")
         exit_immediately_button.pack(side=tkinter.RIGHT)
@@ -204,6 +220,15 @@ class Gui():
 
         placeholder_label = tkinter.Label(self._main_frame)
         placeholder_label.pack(side=tkinter.TOP)
+
+    def _pause_and_change_text_func(self):
+        """Function getting called """
+
+        if self._pause_text.get() != "Pause":
+            self._pause_text.set("Pause")
+        else:
+            self._pause_text.set("Unpause")
+        self._pause_func()
 
     def _exit_after_passes_func(self):
         """Function getting called when pressing the 'Exit after current pass' button"""

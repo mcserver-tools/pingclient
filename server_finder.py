@@ -26,9 +26,10 @@ class ServerFinder():
         self.active_addresses = [["0.0.0.0", []]]
         self._start_time = None
         self.canceled = False
+        self.paused = False
 
         self._gui_update_func = gui_update_func
-        self._dcrpc_helper = DiscordRpcHelper()
+        self.dcrpc_helper = DiscordRpcHelper()
 
     def run(self):
         """Run one pass with the given configuration"""
@@ -52,6 +53,11 @@ class ServerFinder():
         """Stop all ping threads and exit"""
 
         self.canceled = True
+
+    def pause(self):
+        """Pause or unpause all threads"""
+
+        self.paused = not self.paused
 
     def _search(self):
         """Run one pass with the given configuration"""
@@ -174,9 +180,9 @@ class ServerFinder():
         sleep(1)
         while self._running_threads > 0:
             start_time = time.time()
-            self._dcrpc_helper.update(self._responded_count, self._not_responded_count,
+            self.dcrpc_helper.update(self._responded_count, self._not_responded_count,
                                       self._total_addresses)
             sleep(3.0 - (time.time() - start_time))
 
-        self._dcrpc_helper.update(self._responded_count, self._not_responded_count,
+        self.dcrpc_helper.update(self._responded_count, self._not_responded_count,
                                   self._total_addresses)
