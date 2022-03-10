@@ -6,7 +6,7 @@ class Communicator():
     """Class for communication with the server"""
 
     def __init__(self) -> None:
-        self._address = ("192.168.0.154", 20005)
+        self._address = ("ableytner.ddns.net", 20005)
 
     def server_pingable(self, tries = 3):
         """Return True if the server is pingable"""
