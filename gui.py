@@ -76,6 +76,8 @@ class Gui():
 
         self._add_placeholder_label()
 
+        self._hide_console()
+
     def _add_global_labels(self):
         """Add labels containing global information"""
 
@@ -193,10 +195,12 @@ class Gui():
         other_buttons_frame.pack_propagate(False)
         other_buttons_frame.pack(side=tkinter.TOP)
 
-        dcrpc_checkbox = tkinter.Checkbutton(other_buttons_frame, text="Discord rpc", command=self._dcrpc_func)
+        dcrpc_checkbox = tkinter.Checkbutton(other_buttons_frame, text="Discord rpc",
+                                             command=self._dcrpc_func)
         dcrpc_checkbox.pack(side=tkinter.LEFT)
 
-        pause_button = tkinter.Button(other_buttons_frame, textvariable=self._pause_text, command=self._pause_and_change_text_func)
+        pause_button = tkinter.Button(other_buttons_frame, textvariable=self._pause_text,
+                                      command=self._pause_and_change_text_func)
         pause_button.pack(side=tkinter.RIGHT)
 
         exit_button_frame = tkinter.Frame(self._main_frame, width=int(self._size[0]*6),
@@ -236,9 +240,11 @@ class Gui():
         if self._exit_immediately_text.get() != "Exit immediately":
             return
         if self._exit_text.get() == "Exit after current pass":
+            self._show_console()
             self._exit_text.set("Exiting after current pass")
             Thread(target=self._exit_thread_func, args=[self._exit_func]).start()
         else:
+            self._hide_console()
             self._exit_text.set("Exit after current pass")
 
     def _exit_immediately_func(self):
@@ -247,6 +253,7 @@ class Gui():
         if self._exit_text.get() != "Exit after current pass":
             return
         if self._exit_immediately_text.get() == "Exit immediately":
+            self._show_console()
             self._exit_immediately_text.set("Exiting...")
             Thread(target=self._exit_thread_func, args=[self._cancel_func]).start()
 
