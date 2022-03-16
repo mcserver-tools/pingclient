@@ -14,6 +14,8 @@ class DiscordRpcHelper():
         self.last_sent = 0
 
     def initialize(self):
+        """Initialize the discord rich presence"""
+
         with open("pingclient/dc_token.txt", "r", encoding="utf8") as file:
             token = file.readline()
 

@@ -339,7 +339,8 @@ class Gui():
                 if self._working_addresses.get() == "":
                     self._working_addresses.set(address)
                 elif len(self._working_addresses.get().split("\n")) == 20:
-                    self._working_addresses.set(self._working_addresses.get().split("\n", maxsplit=1)[1] + "\n" + address)
+                    self._working_addresses.set(self._working_addresses.get()
+                                                .split("\n", maxsplit=1)[1] + "\n" + address)
                 else:
                     self._working_addresses.set(self._working_addresses.get() + "\n" + address)
 

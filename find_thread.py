@@ -46,8 +46,3 @@ class FindThread():
                 self._server_finder._not_responded_count += 1
             else:
                 raise ierr
-        except Exception as err:
-            print(f"Running threads: {self._server_finder._running_threads}")
-            print(f"Active addresses: {self._server_finder.active_addresses}")
-            print(f"index_c: {self._index_c}")
-            raise err
