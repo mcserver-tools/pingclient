@@ -12,6 +12,8 @@ class DiscordRpcHelper():
         self.start_time = time.time()
         self.total_pings = 0
         self.last_sent = 0
+        self.total_responded = 0
+        self.last_responded = 0
 
     def initialize(self):
         """Initialize the discord rich presence"""
@@ -35,14 +37,17 @@ class DiscordRpcHelper():
         """Update stats shown in the discord rpc"""
 
         if self.last_sent > (responded_count + not_responded_count):
-            self.last_sent = (responded_count + not_responded_count)
-
+            self.last_sent = 0
         self.total_pings += ((responded_count + not_responded_count) - self.last_sent)
-
         self.last_sent = (responded_count + not_responded_count)
 
+        if self.last_responded > responded_count:
+            self.last_responded = 0
+        self.total_responded += responded_count - self.last_responded
+        self.last_responded = responded_count
+
         discord_rpc.update_presence(**{
-            "details": f"Responded: {responded_count}, Total: " +
+            "details": f"Responded: {self.total_responded}, Total: " +
                        f"{responded_count + not_responded_count}/{total_count}",
             "state": f"{self.total_pings} pings sent since starting",
             "start_timestamp": self.start_time,
