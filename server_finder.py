@@ -141,9 +141,13 @@ class ServerFinder():
         """Add SessionInfo objects to the GUI queue"""
 
         sleep(1)
+
         while self._running_threads > 0:
             start_time = time.time()
-            session_info = SessionInfo([item[1] for item in self.active_addresses],
+            working_addresses = []
+            for item in self.active_addresses:
+                working_addresses += item[1]
+            session_info = SessionInfo(working_addresses,
                                        self._total_addresses, self._responded_count,
                                        self._not_responded_count,
                                        (datetime.now() - self._start_time), self._max_threads,
@@ -151,7 +155,10 @@ class ServerFinder():
             self._gui_update_func(session_info)
             sleep(1.0 - (time.time() - start_time))
 
-        session_info = SessionInfo([item[1] for item in self.active_addresses],
+        working_addresses = []
+        for item in self.active_addresses:
+            working_addresses += item[1]
+        session_info = SessionInfo(working_addresses,
                                    self._total_addresses, self._responded_count,
                                    self._not_responded_count, (datetime.now() - self._start_time),
                                    self._max_threads, self._running_threads)

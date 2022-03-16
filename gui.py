@@ -23,8 +23,7 @@ class Gui():
         self._main_frame.pack(side=tkinter.TOP)
         self._main_frame.tk_setPalette(background=self._colors[1], foreground=self._colors[0])
 
-        self._working_addresses = tkinter.StringVar(value="1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n" + \
-                                                          "12\n13\n14\n15\n16\n17\n18\n19\n20")
+        self._working_addresses = tkinter.StringVar(value="")
         self._responded_count = tkinter.StringVar(value="0/0")
         self._addresses_count = tkinter.StringVar(value="0/0")
         self._addresses_percentage = tkinter.StringVar(value="0%")
@@ -277,6 +276,7 @@ class Gui():
 
         self._update_global_stats(session_info)
         self._update_session_stats(session_info)
+        self._update_working_addresses(session_info)
 
     def _update_global_stats(self, session_info):
         """Update stats related to global information"""
@@ -330,6 +330,18 @@ class Gui():
 
         right = str(session_info.active_time).split('.', maxsplit=1)[0]
         self._active_time.set(right)
+
+    def _update_working_addresses(self, session_info):
+        """Update the working addresses display"""
+
+        for address in session_info.working_addresses:
+            if not address in self._working_addresses.get().split("\n"):
+                if self._working_addresses.get() == "":
+                    self._working_addresses.set(address)
+                elif len(self._working_addresses.get().split("\n")) == 20:
+                    self._working_addresses.set(self._working_addresses.get().split("\n", maxsplit=1)[1] + "\n" + address)
+                else:
+                    self._working_addresses.set(self._working_addresses.get() + "\n" + address)
 
     @staticmethod
     def _show_console():
