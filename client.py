@@ -3,8 +3,8 @@
 from threading import Thread
 from time import sleep
 
-from pingclient.gui import Gui
-from pingclient.server_finder import ServerFinder
+from gui import Gui
+from server_finder import ServerFinder
 
 class Client():
     """Class containing the main client functions"""
@@ -58,7 +58,7 @@ class Client():
         """Start the GUI"""
 
         self._gui = Gui(self.toggle_dcrpc, self._finder.pause, self.exit, self.cancel)
-        self._gui.add_labels()
+        self._gui.initialize()
         self._gui.run()
 
     def _run_finder(self):
@@ -74,30 +74,31 @@ class Client():
     def _init_finder(self):
         """Initialize the client"""
 
-        print("Starting client...")
-        print("")
+        print("Starting client...\n")
 
         print("The following the performance modes exist:")
-        print("(1) Low performance, 256 simultaneous threads")
-        print("(2) Medium performance, 2048 simultaneous threads (default)")
-        print("(3) High performance, 8192 simultaneous threads (not recommended)")
+        print("(1) Low internet usage, 128 simultaneous threads")
+        print("(2) Medium internet usage, 512 simultaneous threads (default)")
+        print("(3) High internet usage, 2048 simultaneous threads (not recommended)")
+        print("(4) Extreme internet usage, 8192 simultaneous threads ('just don't use it')")
         mode = input("Input the performance mode of your choice (default: 2): ")
 
         if mode == "1":
-            finder_config = (256, 1)
+            finder_config = (128, 1)
         elif mode == "2":
-            finder_config = (2048, 3)
+            finder_config = (512, 3)
         elif mode == "3":
-            finder_config = (8192, 12)
+            finder_config = (2048, 3)
+        elif mode == "4":
+            finder_config = (8192, 9)
         else:
             print("Continuing with default...")
-            finder_config = (2048, 3)
+            finder_config = (512, 3)
         print("")
 
         print("Creating finder...")
         self._finder = ServerFinder(finder_config[0], finder_config[1], self._update_gui)
-        print("Created finder object                                   ")
-        print("")
+        print("Created finder object                                   \n")
 
     def _update_gui(self, session_info):
         """Add SessionInfo object to the GUI queue"""

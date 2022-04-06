@@ -1,14 +1,14 @@
 """Module ontaining the ServerFinder class"""
 
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from threading import Thread
 from time import sleep
 
-from pingclient.communicator import Communicator
-from pingclient.discordrpc_helper import DiscordRpcHelper
-from pingclient.find_thread import FindThread
-from pingclient.session_info import SessionInfo
+from communicator import Communicator
+from discordrpc_helper import DiscordRpcHelper
+from find_thread import FindThread
+from session_info import SessionInfo
 
 # pylint: disable=R0902
 
