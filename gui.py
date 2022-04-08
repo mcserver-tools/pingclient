@@ -4,9 +4,8 @@ import tkinter
 from ctypes import WinDLL, windll
 from datetime import timedelta
 from queue import Queue
-from threading import Thread
 
-from gui_creator import add_labels
+from gui_creator import GuiCreator
 
 # pylint: disable=R0902, R0914
 
@@ -16,14 +15,11 @@ class Gui():
     def __init__(self, dcrpc_func, pause_func, exit_func, cancel_func) -> None:
         """Initialize the Gui"""
 
-        self.SIZE = (48, 64)
-        self.COLORS = ("#C1C1C1", "#464545")
-
         self._root = tkinter.Tk(screenName=None, baseName=None, className="PingClient", useTk=True)
         self._root.resizable(False, False)
-        self._main_frame = tkinter.Frame(self._root)
-        self._main_frame.pack(side=tkinter.TOP)
-        self._main_frame.tk_setPalette(background=self.COLORS[1], foreground=self.COLORS[0])
+        self.main_frame = tkinter.Frame(self._root)
+        self.main_frame.pack(side=tkinter.TOP)
+        self.main_frame.tk_setPalette(background=self.COLORS[1], foreground=self.COLORS[0])
 
         self.string_vars = {}
 
@@ -38,6 +34,9 @@ class Gui():
             "exit": exit_func,
             "cancel": cancel_func
         }
+
+    SIZE = (48, 64)
+    COLORS = ("#C1C1C1", "#464545")
 
     def initialize(self):
         """Initialize the Gui"""
@@ -55,7 +54,7 @@ class Gui():
         self.string_vars["exit_text"] = tkinter.StringVar(value="Exit after current pass")
         self.string_vars["exit_immediately_text"] = tkinter.StringVar(value="Exit immediately")
 
-        add_labels(self)
+        GuiCreator(self).add_labels()
 
     def run(self):
         """Run the Gui"""
@@ -63,39 +62,7 @@ class Gui():
         self._read_queue()
         self._root.mainloop()
 
-    def _pause_and_change_text_func(self):
-        """Function getting called """
-
-        if self.string_vars["pause_text"].get() != "Pause":
-            self.string_vars["pause_text"].set("Pause")
-        else:
-            self.string_vars["pause_text"].set("Unpause")
-        self.callbacks["pause"]()
-
-    def _exit_after_passes_func(self):
-        """Function getting called when pressing the 'Exit after current pass' button"""
-
-        if self.string_vars["exit_immediately_text"].get() != "Exit immediately":
-            return
-        if self.string_vars["exit_text"].get() == "Exit after current pass":
-            self._show_console()
-            self.string_vars["exit_text"].set("Exiting after current pass")
-            Thread(target=self._exit_thread_func, args=[self.callbacks["exit"]]).start()
-        else:
-            self._hide_console()
-            self.string_vars["exit_text"].set("Exit after current pass")
-
-    def _exit_immediately_func(self):
-        """Function getting called when pressing the 'Exit immediately button"""
-
-        if self.string_vars["exit_text"].get() != "Exit after current pass":
-            return
-        if self.string_vars["exit_immediately_text"].get() == "Exit immediately":
-            self._show_console()
-            self.string_vars["exit_immediately_text"].set("Exiting...")
-            Thread(target=self._exit_thread_func, args=[self.callbacks["cancel"]]).start()
-
-    def _exit_thread_func(self, func):
+    def exit_thread_func(self, func):
         """Function waiting for all threads to stop, then exit the GUI"""
 
         if func():
@@ -120,22 +87,25 @@ class Gui():
     def _update_global_stats(self, session_info):
         """Update stats related to global information"""
 
+        # reset after a new pass starts
         if self._last_total_count > (session_info.responded_count +
                                      session_info.not_responded_count):
             self._last_total_count = (session_info.responded_count +
                                       session_info.not_responded_count)
         if self._last_responded_count > session_info.responded_count:
             self._last_responded_count = session_info.responded_count
-        old_total_responded_split = self.string_vars["total_responded_count"].get().split("/")
-        responded = (int(old_total_responded_split[0]) + \
-                     (session_info.responded_count - self._last_responded_count))
-        total = (int(old_total_responded_split[1]) +
-                 (session_info.responded_count + session_info.not_responded_count) -
-                 self._last_total_count)
-        right = f"{responded}/{total}"
+
+        old_total_count_split = self.string_vars["total_responded_count"].get().split("/")
+        responded = (int(old_total_count_split[0]) +
+                    (session_info.responded_count - self._last_responded_count))
+        total = (int(old_total_count_split[1]) +
+                ((session_info.responded_count + session_info.not_responded_count) -
+                self._last_total_count))
+
         self._last_responded_count = session_info.responded_count
         self._last_total_count = (session_info.responded_count + session_info.not_responded_count)
-        self.string_vars["total_responded_count"].set(right)
+
+        self.string_vars["total_responded_count"].set(f"{responded}/{total}")
 
         self._update_total_active_time(session_info)
 
@@ -179,23 +149,24 @@ class Gui():
     def _update_session_stats(self, session_info):
         """Update stats related to session information"""
 
-        right = str(session_info.responded_count) + "/" + \
-                str(session_info.responded_count + session_info.not_responded_count)
-        self.string_vars["responded_count"].set(right)
+        responded_count = str(session_info.responded_count) + "/" + \
+                          str(session_info.responded_count + session_info.not_responded_count)
+        self.string_vars["responded_count"].set(responded_count)
 
-        right = str(session_info.responded_count + session_info.not_responded_count) + "/" + \
-                str(session_info.total_addresses)
-        self.string_vars["addresses_count"].set(right)
+        address_count = str(session_info.responded_count + session_info.not_responded_count) + \
+                        "/" + str(session_info.total_addresses)
+        self.string_vars["addresses_count"].set(address_count)
 
-        right = str(int(((session_info.responded_count + session_info.not_responded_count) /
-                session_info.total_addresses) * 100)) + "%"
-        self.string_vars["addresses_percentage"].set(right)
+        address_percentage = str(int(((session_info.responded_count +
+                                       session_info.not_responded_count) /
+                                      session_info.total_addresses) * 100)) + "%"
+        self.string_vars["addresses_percentage"].set(address_percentage)
 
-        right = f"{session_info.active_threads}/{session_info.max_threads}"
-        self.string_vars["thread_counter"].set(right)
+        thread_counter = f"{session_info.active_threads}/{session_info.max_threads}"
+        self.string_vars["thread_counter"].set(thread_counter)
 
-        right = str(session_info.active_time).split('.', maxsplit=1)[0]
-        self.string_vars["active_time"].set(right)
+        active_time = str(session_info.active_time).split('.', maxsplit=1)[0]
+        self.string_vars["active_time"].set(active_time)
 
     def _update_working_addresses(self, session_info):
         """Update the working addresses display"""
@@ -207,13 +178,13 @@ class Gui():
                     self.string_vars["working_addresses"].set(address)
                 elif len(saved_addresses.split("\n")) == 20:
                     self.string_vars["working_addresses"].set(saved_addresses
-                                                               .split("\n", maxsplit=1)[1]
-                                                               + "\n" + address)
+                                                              .split("\n", maxsplit=1)[1]
+                                                              + "\n" + address)
                 else:
                     self.string_vars["working_addresses"].set(saved_addresses + "\n" + address)
 
     @staticmethod
-    def _show_console():
+    def show_console():
         """Show the console window"""
 
         window_handle = windll.kernel32.GetConsoleWindow()
@@ -222,7 +193,7 @@ class Gui():
         WinDLL('user32', use_last_error=True).ShowWindow(window_handle, show_flag)
 
     @staticmethod
-    def _hide_console():
+    def hide_console():
         """Hide the console window"""
 
         window_handle = windll.kernel32.GetConsoleWindow()

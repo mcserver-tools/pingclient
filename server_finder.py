@@ -1,7 +1,7 @@
 """Module ontaining the ServerFinder class"""
 
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 from threading import Thread
 from time import sleep
 

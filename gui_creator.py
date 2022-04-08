@@ -1,128 +1,193 @@
+"""Module for creating the self.gui window"""
+
+from threading import Thread
 import tkinter
 
-def add_labels(gui):
-    """Controls the addition of labels to the main window"""
+# pylint: disable=R0903
 
-    # Main application header
-    tkinter.Label(gui._main_frame, text="Ping Client", font=("", 30), width=int(gui.SIZE[0] / 3), height=int(gui.SIZE[1] / 24)).pack(side=tkinter.TOP)
+class GuiCreator:
+    """Class for creating the Gui main window"""
 
-    _add_global_labels(gui)
-    tkinter.Label(gui._main_frame).pack(side=tkinter.TOP)
-    _add_session_labels(gui)
-    tkinter.Label(gui._main_frame).pack(side=tkinter.TOP)
-    _add_working_addresses_labels(gui)
-    tkinter.Label(gui._main_frame).pack(side=tkinter.TOP)
-    _add_buttons(gui)
-    tkinter.Label(gui._main_frame).pack(side=tkinter.TOP)
+    def __init__(self, gui) -> None:
+        self.gui = gui
 
-    gui._hide_console()
+    def add_labels(self):
+        """Adds labels to the main window"""
 
-def _add_global_labels(gui):
-    """Add labels containing global information"""
+        # Main application header
+        tkinter.Label(self.gui.main_frame, text="Ping Client", font=("", 30),
+                      width=int(self.gui.SIZE[0] / 3), height=int(self.gui.SIZE[1] / 24)) \
+               .pack(side=tkinter.TOP)
 
-    global_frame = tkinter.Frame(gui._main_frame, width=int(gui.SIZE[0]*6),
-                                    height=int(gui.SIZE[1]),
-                                    highlightbackground=gui.COLORS[0], highlightthickness=1)
-    global_frame.pack_propagate(False)
-    global_frame.pack(side=tkinter.TOP)
+        # empty labels are whitespaces between the different sections
+        self._add_global_labels()
+        tkinter.Label(self.gui.main_frame).pack(side=tkinter.TOP)
+        self._add_session_labels()
+        tkinter.Label(self.gui.main_frame).pack(side=tkinter.TOP)
+        self._add_working_addresses_labels()
+        tkinter.Label(self.gui.main_frame).pack(side=tkinter.TOP)
+        self._add_buttons()
+        tkinter.Label(self.gui.main_frame).pack(side=tkinter.TOP)
 
-    # Global header
-    tkinter.Label(global_frame, text="Global:", anchor="w").pack(fill="both")
+        self.gui.hide_console()
 
-    total_responded_frame = tkinter.Frame(global_frame, width=int(gui.SIZE[0]*6),
-                                            height=int(gui.SIZE[1]/3))
-    total_responded_frame.pack(side=tkinter.TOP)
-    tkinter.Label(total_responded_frame, text="Responded:").pack(fill=tkinter.BOTH, side=tkinter.LEFT)
-    tkinter.Label(total_responded_frame, textvariable=gui.string_vars["total_responded_count"]).pack(fill=tkinter.BOTH, side=tkinter.RIGHT)
+    def _add_global_labels(self):
+        """Add labels containing global information"""
 
-    total_active_frame = tkinter.Frame(global_frame, width=int(gui.SIZE[0]*6),
-                                        height=int(gui.SIZE[1]/3))
-    total_active_frame.pack(side=tkinter.TOP)
-    tkinter.Label(total_active_frame, text="Total duration:").pack(fill=tkinter.BOTH, side=tkinter.LEFT)
-    tkinter.Label(total_active_frame, textvariable=gui.string_vars["total_active_time"]).pack(fill=tkinter.BOTH, side=tkinter.RIGHT)
+        global_frame = tkinter.Frame(self.gui.main_frame, width=int(self.gui.SIZE[0]*6),
+                                        height=int(self.gui.SIZE[1]),
+                                        highlightbackground=self.gui.COLORS[0],
+                                        highlightthickness=1)
+        global_frame.pack_propagate(False)
+        global_frame.pack(side=tkinter.TOP)
 
-def _add_session_labels(gui):
-    """Add labels containing session information"""
+        # Global header
+        tkinter.Label(global_frame, text="Global:", anchor="w").pack(fill="both")
 
-    session_frame = tkinter.Frame(gui._main_frame, width=int(gui.SIZE[0]*6),
-                                    height=int(gui.SIZE[1]*2),
-                                    highlightbackground=gui.COLORS[0], highlightthickness=1)
-    session_frame.pack_propagate(False)
-    session_frame.pack(side=tkinter.TOP)
+        total_responded_frame = tkinter.Frame(global_frame, width=int(self.gui.SIZE[0]*6),
+                                                height=int(self.gui.SIZE[1]/3))
+        total_responded_frame.pack(side=tkinter.TOP)
+        tkinter.Label(total_responded_frame, text="Responded:").pack(fill=tkinter.BOTH,
+                                                                    side=tkinter.LEFT)
+        tkinter.Label(total_responded_frame,
+                      textvariable=self.gui.string_vars["total_responded_count"]) \
+            .pack(fill=tkinter.BOTH, side=tkinter.RIGHT)
 
-    # Session header
-    tkinter.Label(session_frame, text="Session:", anchor="w").pack(fill="both")
+        total_active_frame = tkinter.Frame(global_frame, width=int(self.gui.SIZE[0]*6),
+                                            height=int(self.gui.SIZE[1]/3))
+        total_active_frame.pack(side=tkinter.TOP)
+        tkinter.Label(total_active_frame, text="Total duration:").pack(fill=tkinter.BOTH,
+                                                                    side=tkinter.LEFT)
+        tkinter.Label(total_active_frame,
+                      textvariable=self.gui.string_vars["total_active_time"]) \
+            .pack(fill=tkinter.BOTH, side=tkinter.RIGHT)
 
-    responded_frame = tkinter.Frame(session_frame, width=int(gui.SIZE[0]*6),
-                                    height=int(gui.SIZE[1]/3))
-    responded_frame.pack(side=tkinter.TOP)
-    tkinter.Label(responded_frame, text="Responded:").pack(fill=tkinter.BOTH, side=tkinter.LEFT)
-    tkinter.Label(responded_frame, textvariable=gui.string_vars["responded_count"]).pack(fill=tkinter.BOTH, side=tkinter.RIGHT)
+    def _add_session_labels(self):
+        """Add labels containing session information"""
 
-    addresses_frame = tkinter.Frame(session_frame, width=int(gui.SIZE[0]*6),
-                                    height=int(gui.SIZE[1]/3))
-    addresses_frame.pack(side=tkinter.TOP)
-    tkinter.Label(addresses_frame, text="Total:").pack(fill=tkinter.BOTH, side=tkinter.LEFT)
-    tkinter.Label(addresses_frame, textvariable=gui.string_vars["addresses_count"]).pack(fill=tkinter.BOTH, side=tkinter.RIGHT)
+        session_frame = tkinter.Frame(self.gui.main_frame, width=int(self.gui.SIZE[0]*6),
+                                        height=int(self.gui.SIZE[1]*2),
+                                        highlightbackground=self.gui.COLORS[0],
+                                        highlightthickness=1)
+        session_frame.pack_propagate(False)
+        session_frame.pack(side=tkinter.TOP)
 
-    addresses_percentage_frame = tkinter.Frame(session_frame, width=int(gui.SIZE[0]*6),
-                                                height=int(gui.SIZE[1]/3))
-    addresses_percentage_frame.pack(side=tkinter.TOP)
-    tkinter.Label(addresses_percentage_frame, text="Total percentage:").pack(fill=tkinter.BOTH, side=tkinter.LEFT)
-    tkinter.Label(addresses_percentage_frame, textvariable=gui.string_vars["addresses_percentage"]).pack(fill=tkinter.BOTH, side=tkinter.RIGHT)
+        # Session header
+        tkinter.Label(session_frame, text="Session:", anchor="w").pack(fill="both")
 
-    thread_frame = tkinter.Frame(session_frame, width=int(gui.SIZE[0]*6),
-                                    height=int(gui.SIZE[1]/3))
-    thread_frame.pack(side=tkinter.TOP)
-    tkinter.Label(thread_frame, text="Active threads:").pack(side=tkinter.LEFT)
-    tkinter.Label(thread_frame, textvariable=gui.string_vars["thread_counter"]).pack(side=tkinter.RIGHT)
+        responded_frame = tkinter.Frame(session_frame, width=int(self.gui.SIZE[0]*6),
+                                        height=int(self.gui.SIZE[1]/3))
+        responded_frame.pack(side=tkinter.TOP)
+        tkinter.Label(responded_frame, text="Responded:").pack(fill=tkinter.BOTH,
+                                                               side=tkinter.LEFT)
+        tkinter.Label(responded_frame, textvariable=self.gui.string_vars["responded_count"]) \
+            .pack(fill=tkinter.BOTH, side=tkinter.RIGHT)
 
-    active_frame = tkinter.Frame(session_frame, width=int(gui.SIZE[0]*6),
-                                    height=int(gui.SIZE[1]/3))
-    active_frame.pack(side=tkinter.TOP)
-    tkinter.Label(active_frame, text="Session duration:").pack(side=tkinter.LEFT)
-    tkinter.Label(active_frame, textvariable=gui.string_vars["active_time"]).pack(side=tkinter.RIGHT)
+        addresses_frame = tkinter.Frame(session_frame, width=int(self.gui.SIZE[0]*6),
+                                        height=int(self.gui.SIZE[1]/3))
+        addresses_frame.pack(side=tkinter.TOP)
+        tkinter.Label(addresses_frame, text="Total:").pack(fill=tkinter.BOTH, side=tkinter.LEFT)
+        tkinter.Label(addresses_frame, textvariable=self.gui.string_vars["addresses_count"]) \
+            .pack(fill=tkinter.BOTH, side=tkinter.RIGHT)
 
-def _add_working_addresses_labels(gui):
-    """Add labels containing working addresses"""
+        addresses_percentage_frame = tkinter.Frame(session_frame, width=int(self.gui.SIZE[0]*6),
+                                                    height=int(self.gui.SIZE[1]/3))
+        addresses_percentage_frame.pack(side=tkinter.TOP)
+        tkinter.Label(addresses_percentage_frame, text="Total percentage:").pack(fill=tkinter.BOTH,
+                                                                                side=tkinter.LEFT)
+        tkinter.Label(addresses_percentage_frame,
+                      textvariable=self.gui.string_vars["addresses_percentage"]) \
+               .pack(fill=tkinter.BOTH, side=tkinter.RIGHT)
 
-    addresses_frame = tkinter.Frame(gui._main_frame, width=int(gui.SIZE[0]*6),
-                                    height=int(gui.SIZE[1]*5.15),
-                                    highlightbackground=gui.COLORS[0], highlightthickness=1)
-    addresses_frame.pack_propagate(False)
-    addresses_frame.pack(side=tkinter.TOP)
+        thread_frame = tkinter.Frame(session_frame, width=int(self.gui.SIZE[0]*6),
+                                        height=int(self.gui.SIZE[1]/3))
+        thread_frame.pack(side=tkinter.TOP)
+        tkinter.Label(thread_frame, text="Active threads:").pack(side=tkinter.LEFT)
+        tkinter.Label(thread_frame, textvariable=self.gui.string_vars["thread_counter"]) \
+            .pack(side=tkinter.RIGHT)
 
-    # Working addresses header
-    tkinter.Label(addresses_frame, text="Working addresses:", anchor="w").pack(fill="both")
+        active_frame = tkinter.Frame(session_frame, width=int(self.gui.SIZE[0]*6),
+                                        height=int(self.gui.SIZE[1]/3))
+        active_frame.pack(side=tkinter.TOP)
+        tkinter.Label(active_frame, text="Session duration:").pack(side=tkinter.LEFT)
+        tkinter.Label(active_frame, textvariable=self.gui.string_vars["active_time"]) \
+            .pack(side=tkinter.RIGHT)
 
-    tkinter.Label(addresses_frame, textvariable=gui.string_vars["working_addresses"]).pack(side=tkinter.TOP)
+    def _add_working_addresses_labels(self):
+        """Add labels containing working addresses"""
 
-def _add_buttons(gui):
-    """Add buttons"""
+        addresses_frame = tkinter.Frame(self.gui.main_frame, width=int(self.gui.SIZE[0]*6),
+                                        height=int(self.gui.SIZE[1]*5.15),
+                                        highlightbackground=self.gui.COLORS[0],
+                                        highlightthickness=1)
+        addresses_frame.pack_propagate(False)
+        addresses_frame.pack(side=tkinter.TOP)
 
-    other_buttons_frame = tkinter.Frame(gui._main_frame, width=int(gui.SIZE[0]*6),
-                                    height=int(gui.SIZE[1]/2),
-                                    highlightbackground=gui.COLORS[0],
-                                    highlightthickness=1)
-    other_buttons_frame.pack_propagate(False)
-    other_buttons_frame.pack(side=tkinter.TOP)
+        # Working addresses header
+        tkinter.Label(addresses_frame, text="Working addresses:", anchor="w").pack(fill="both")
 
-    tkinter.Checkbutton(other_buttons_frame, text="Discord rpc", command=gui.callbacks["dcrpc"]).pack(side=tkinter.LEFT)
+        tkinter.Label(addresses_frame, textvariable=self.gui.string_vars["working_addresses"]) \
+               .pack(side=tkinter.TOP)
 
-    tkinter.Button(other_buttons_frame, textvariable=gui.string_vars["pause_text"], command=gui._pause_and_change_text_func).pack(side=tkinter.RIGHT)
+    def _add_buttons(self):
+        """Add buttons"""
 
-    exit_button_frame = tkinter.Frame(gui._main_frame, width=int(gui.SIZE[0]*6),
-                                    height=int(gui.SIZE[1]/2),
-                                    highlightbackground=gui.COLORS[0],
-                                    highlightthickness=1)
-    exit_button_frame.pack_propagate(False)
-    exit_button_frame.pack(side=tkinter.TOP)
+        buttons_frame = tkinter.Frame(self.gui.main_frame, width=int(self.gui.SIZE[0]*6),
+                                        height=int(self.gui.SIZE[1]),
+                                        highlightbackground=self.gui.COLORS[0],
+                                        highlightthickness=1)
+        buttons_frame.pack_propagate(False)
+        buttons_frame.pack(side=tkinter.TOP)
 
-    tkinter.Button(exit_button_frame, textvariable=gui.string_vars["exit_text"], command=gui._exit_after_passes_func).pack(side=tkinter.LEFT)
+        other_buttons_frame = tkinter.Frame(buttons_frame, width=int(self.gui.SIZE[0]*6),
+                                            height=int(self.gui.SIZE[1]/2))
+        other_buttons_frame.pack_propagate(False)
+        other_buttons_frame.pack(side=tkinter.TOP)
 
-    tkinter.Button(exit_button_frame, textvariable=gui.string_vars["exit_immediately_text"], command=gui._exit_immediately_func).pack(side=tkinter.RIGHT)
+        tkinter.Checkbutton(other_buttons_frame, text="Discord rpc",
+                            command=self.gui.callbacks["dcrpc"]).pack(side=tkinter.LEFT)
+        tkinter.Button(other_buttons_frame, textvariable=self.gui.string_vars["pause_text"],
+                       command=self._pause_and_change_text_func).pack(side=tkinter.RIGHT)
 
-def _add_placeholder_label(gui):
-    """Add a label as a placeholder"""
+        exit_button_frame = tkinter.Frame(buttons_frame, width=int(self.gui.SIZE[0]*6),
+                                          height=int(self.gui.SIZE[1]/2))
+        exit_button_frame.pack_propagate(False)
+        exit_button_frame.pack(side=tkinter.TOP)
 
-    tkinter.Label(gui._main_frame).pack(side=tkinter.TOP)
+        tkinter.Button(exit_button_frame, textvariable=self.gui.string_vars["exit_text"],
+                       command=self._exit_after_passes_func).pack(side=tkinter.LEFT)
+        tkinter.Button(exit_button_frame,
+                       textvariable=self.gui.string_vars["exit_immediately_text"],
+                       command=self._exit_immediately_func).pack(side=tkinter.RIGHT)
+
+    def _pause_and_change_text_func(self):
+        """Function getting called """
+
+        if self.gui.string_vars["pause_text"].get() != "Pause":
+            self.gui.string_vars["pause_text"].set("Pause")
+        else:
+            self.gui.string_vars["pause_text"].set("Unpause")
+        self.gui.callbacks["pause"]()
+
+    def _exit_after_passes_func(self):
+        """Function getting called when pressing the 'Exit after current pass' button"""
+
+        if self.gui.string_vars["exit_immediately_text"].get() != "Exit immediately":
+            return
+        if self.gui.string_vars["exit_text"].get() == "Exit after current pass":
+            self.gui.show_console()
+            self.gui.string_vars["exit_text"].set("Exiting after current pass")
+            Thread(target=self.gui.exit_thread_func, args=[self.gui.callbacks["exit"]]).start()
+        else:
+            self.gui.hide_console()
+            self.gui.string_vars["exit_text"].set("Exit after current pass")
+
+    def _exit_immediately_func(self):
+        """Function getting called when pressing the 'Exit immediately button"""
+
+        if self.gui.string_vars["exit_text"].get() != "Exit after current pass":
+            return
+        if self.gui.string_vars["exit_immediately_text"].get() == "Exit immediately":
+            self.gui.show_console()
+            self.gui.string_vars["exit_immediately_text"].set("Exiting...")
+            Thread(target=self.gui.exit_thread_func, args=[self.gui.callbacks["cancel"]]).start()
