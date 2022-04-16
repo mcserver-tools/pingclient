@@ -1,12 +1,15 @@
 """Module containing the Communicator class"""
 
+import sys
 from socket import create_connection
 
 class Communicator():
     """Class for communication with the server"""
 
     def __init__(self) -> None:
-        self._address = ("ableytner.ddns.net", 20005)
+        if len(sys.argv) == 1:
+            raise Exception("No address specified, exiting...")
+        self._address = (sys.argv[1], 20005)
 
     def server_pingable(self, tries = 3):
         """Return True if the server is pingable"""

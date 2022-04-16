@@ -45,7 +45,8 @@ class Client():
     def cancel(self):
         """Exit immediately"""
 
-        self._exit = not self._exit
+        self._exit = True
+        self._gui.show_console()
         self._finder.cancel()
 
         while self._finder.running_threads > 0:
@@ -64,12 +65,19 @@ class Client():
     def _run_finder(self):
         """Start pinging addresses"""
 
-        while not self._exit:
-            self._finder.run()
-            sleep(1)
-            while self._finder.running_threads > 0:
+        try:
+            while not self._exit:
+                self._finder.run()
                 sleep(1)
+                while self._finder.running_threads > 0:
+                    sleep(1)
+                sleep(1)
+        except Exception as e:
+            self._exit = True
             sleep(1)
+            Thread(target=self._gui.exit, daemon=True).start()
+            sleep(1)
+            raise e
 
     def _init_finder(self):
         """Initialize the client"""

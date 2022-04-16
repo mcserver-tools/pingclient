@@ -4,6 +4,7 @@ import tkinter
 from ctypes import WinDLL, windll
 from datetime import timedelta
 from queue import Queue
+from threading import Thread
 
 from gui_creator import GuiCreator
 
@@ -54,6 +55,8 @@ class Gui():
         self.string_vars["exit_text"] = tkinter.StringVar(value="Exit after current pass")
         self.string_vars["exit_immediately_text"] = tkinter.StringVar(value="Exit immediately")
 
+        self._root.protocol("WM_DELETE_WINDOW", Thread(target=self.exit_thread_func, args=[self.callbacks["cancel"]]).start)
+
         GuiCreator(self).add_labels()
 
     def run(self):
@@ -61,6 +64,12 @@ class Gui():
 
         self._read_queue()
         self._root.mainloop()
+
+    def exit(self):
+        """Exit the Gui"""
+
+        self.show_console()
+        self._root.quit()
 
     def exit_thread_func(self, func):
         """Function waiting for all threads to stop, then exit the GUI"""
@@ -158,8 +167,8 @@ class Gui():
         self.string_vars["addresses_count"].set(address_count)
 
         address_percentage = str(int(((session_info.responded_count +
-                                       session_info.not_responded_count) /
-                                      session_info.total_addresses) * 100)) + "%"
+                                    session_info.not_responded_count) /
+                                    session_info.total_addresses) * 100)) + "%"
         self.string_vars["addresses_percentage"].set(address_percentage)
 
         thread_counter = f"{session_info.active_threads}/{session_info.max_threads}"
