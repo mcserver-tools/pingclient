@@ -3,7 +3,7 @@
 from socket import gaierror
 from time import sleep
 
-from mcstatus import MinecraftServer
+from mcstatus import JavaServer
 
 # pylint: disable=R0903
 
@@ -33,7 +33,7 @@ class FindThread():
         """Ping the given address"""
 
         try:
-            MinecraftServer(address, 25565).ping(1)
+            JavaServer(address, 25565).ping(tries=1)
 
             self._server_finder.active_addresses[self._index_c][1].append(address)
             self._server_finder._responded_count += 1
