@@ -8,6 +8,7 @@ from time import sleep
 from communicator import Communicator
 from discordrpc_helper import DiscordRpcHelper
 from find_thread import FindThread
+from gui import Gui
 from session_info import SessionInfo
 
 # pylint: disable=R0902
@@ -23,7 +24,7 @@ class ServerFinder():
         self._running_threads = 0
         self._responded_count = 0
         self._not_responded_count = 0
-        self.active_addresses = [["0.0.0.0", []]]
+        self.active_addresses = []
         self._start_time = None
         self.canceled = False
         self.paused = False
@@ -53,6 +54,7 @@ class ServerFinder():
         """Stop all ping threads and exit"""
 
         self.canceled = True
+        Gui.show_console()
 
     def pause(self):
         """Pause or unpause all threads"""
@@ -62,11 +64,8 @@ class ServerFinder():
     def _search(self):
         """Run one pass with the given configuration"""
 
-        self._total_addresses = 0
-        self._responded_count = 0
-        self._not_responded_count = 0
-        self.active_addresses.clear()
         self._start_time = datetime.now()
+        Gui.hide_console()
 
         # Thread(target=self._cli_func).start()
         Thread(target=self._gui_func).start()
@@ -103,6 +102,9 @@ class ServerFinder():
         passes = 0
         while not self.canceled and passes < self._max_passes:
             passes += 1
+            if not Communicator().server_pingable():
+                self.cancel()
+                return
 
             self.active_addresses.append([Communicator().get_address(), []])
             first_number = self.active_addresses[-1][0].split(".", maxsplit=1)[0]
@@ -130,11 +132,9 @@ class ServerFinder():
         sleep(1)
         while self._running_threads > 0:
             for item in self.active_addresses:
-                received = not Communicator().send_keepalive(item[0])
-                if not self.canceled:
-                    self.canceled = received
-                if self.canceled:
-                    break
+                if not Communicator().send_keepalive(item[0]):
+                    self.cancel()
+                    return
             sleep(5)
 
     def _gui_func(self):

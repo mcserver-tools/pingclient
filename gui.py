@@ -55,7 +55,7 @@ class Gui():
         self.string_vars["exit_text"] = tkinter.StringVar(value="Exit after current pass")
         self.string_vars["exit_immediately_text"] = tkinter.StringVar(value="Exit immediately")
 
-        self._root.protocol("WM_DELETE_WINDOW", Thread(target=self.exit_thread_func, args=[self.callbacks["cancel"]]).start)
+        self._root.protocol("WM_DELETE_WINDOW", Thread(target=self.exit).start)
 
         GuiCreator(self).add_labels()
 
@@ -68,14 +68,16 @@ class Gui():
     def exit(self):
         """Exit the Gui"""
 
+        self.callbacks["cancel"]()
         self.show_console()
         self._root.quit()
 
-    def exit_thread_func(self, func):
-        """Function waiting for all threads to stop, then exit the GUI"""
+    def _exit_after_current_pass(self):
+        """Exit the Gui after all threads have stopped"""
 
-        if func():
-            self._root.quit()
+        self.callbacks["exit"]()
+        self.show_console()
+        self._root.quit()
 
     def _read_queue(self):
         """Read new entries from the queue"""

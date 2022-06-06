@@ -31,6 +31,9 @@ class Client():
         else:
             self._finder.dcrpc_helper.initialize()
 
+    def pause(self):
+        self._finder.pause()
+
     def exit(self):
         """Exit after the current pass"""
 
@@ -58,7 +61,7 @@ class Client():
     def _start_gui(self):
         """Start the GUI"""
 
-        self._gui = Gui(self.toggle_dcrpc, self._finder.pause, self.exit, self.cancel)
+        self._gui = Gui(self.toggle_dcrpc, self.pause, self.exit, self.cancel)
         self._gui.initialize()
         self._gui.run()
 
@@ -67,11 +70,9 @@ class Client():
 
         try:
             while not self._exit:
+                self._finder = ServerFinder(self._finder_config[0], self._finder_config[1],
+                                            self._update_gui)
                 self._finder.run()
-                sleep(1)
-                while self._finder.running_threads > 0:
-                    sleep(1)
-                sleep(1)
         except Exception as e:
             self._exit = True
             sleep(1)
@@ -92,21 +93,17 @@ class Client():
         mode = input("Input the performance mode of your choice (default: 2): ")
 
         if mode == "1":
-            finder_config = (128, 1)
+            self._finder_config = (128, 1)
         elif mode == "2":
-            finder_config = (512, 3)
+            self._finder_config = (512, 3)
         elif mode == "3":
-            finder_config = (2048, 3)
+            self._finder_config = (2048, 3)
         elif mode == "4":
-            finder_config = (8192, 9)
+            self._finder_config = (8192, 9)
         else:
             print("Continuing with default...")
-            finder_config = (512, 3)
+            self._finder_config = (512, 3)
         print("")
-
-        print("Creating finder...")
-        self._finder = ServerFinder(finder_config[0], finder_config[1], self._update_gui)
-        print("Created finder object                                   \n")
 
     def _update_gui(self, session_info):
         """Add SessionInfo object to the GUI queue"""

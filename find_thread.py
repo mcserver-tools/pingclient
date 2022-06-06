@@ -22,6 +22,7 @@ class FindThread():
             if self._server_finder.canceled:
                 self._server_finder._running_threads -= 1
                 return
+
             if self._server_finder.paused:
                 while self._server_finder.paused:
                     sleep(0.1)

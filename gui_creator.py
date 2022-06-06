@@ -29,8 +29,6 @@ class GuiCreator:
         self._add_buttons()
         tkinter.Label(self.gui.main_frame).pack(side=tkinter.TOP)
 
-        self.gui.hide_console()
-
     def _add_global_labels(self):
         """Add labels containing global information"""
 
@@ -177,7 +175,7 @@ class GuiCreator:
         if self.gui.string_vars["exit_text"].get() == "Exit after current pass":
             self.gui.show_console()
             self.gui.string_vars["exit_text"].set("Exiting after current pass")
-            Thread(target=self.gui.exit_thread_func, args=[self.gui.callbacks["exit"]]).start()
+            Thread(target=self.gui._exit_after_current_pass).start()
         else:
             self.gui.hide_console()
             self.gui.string_vars["exit_text"].set("Exit after current pass")
@@ -190,4 +188,4 @@ class GuiCreator:
         if self.gui.string_vars["exit_immediately_text"].get() == "Exit immediately":
             self.gui.show_console()
             self.gui.string_vars["exit_immediately_text"].set("Exiting...")
-            Thread(target=self.gui.exit_thread_func, args=[self.gui.callbacks["cancel"]]).start()
+            Thread(target=self.gui.exit).start()

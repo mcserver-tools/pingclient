@@ -16,14 +16,14 @@ class Communicator():
 
         while tries > 0:
             try:
-                sock = create_connection(self._address)
+                sock = create_connection(self._address, timeout=5.0)
                 self._send(sock, "PING")
-                if self._recv(sock) == "200 OK":
+                if self._recv(sock) == "OK":
                     return True
                 tries -= 1
-            except ConnectionRefusedError:
+            except (ConnectionRefusedError, TimeoutError):
                 tries -= 1
-                print(f"Connection to server refused, retrying {tries} more times...", end="\r")
+                print(f"Connection to server failed, retrying {tries} more times...", end="\r")
         return False
 
     def get_address(self):
@@ -41,20 +41,22 @@ class Communicator():
 
         sock = create_connection(self._address)
 
-        self._send(sock, f"POST address {client_address} {str(addresses)}")
+        self._send(sock, f"PUT address {client_address} {str(addresses)}")
         answer = self._recv(sock)
 
-        return answer == "200 OK"
+        return answer == "OK"
 
     def send_keepalive(self, address):
         """Send keepalive request"""
 
-        sock = create_connection(self._address)
-
-        self._send(sock, f"KEEPALIVE {address}")
-        answer = self._recv(sock)
-
-        return answer == "200 OK"
+        try:
+            sock = create_connection(self._address)
+            self._send(sock, f"KEEPALIVE {address}")
+            answer = self._recv(sock)
+        except (ConnectionRefusedError, TimeoutError):
+            print(f"Sending keepalive to server failed, cancelling...")
+            return False
+        return answer == "OK"
 
     def _send(self, sock, text):
         """Send string to the given socket"""
