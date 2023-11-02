@@ -6,7 +6,7 @@ from typing import List
 
 @dataclass
 class SessionInfo():
-    """Dataclass containing session info"""
+    """Dataclass containing session information"""
 
     working_addresses: List[str]
     total_addresses: int
@@ -15,16 +15,6 @@ class SessionInfo():
     active_time: timedelta
     max_threads: int
     active_threads: int
-
-#     def __init__(self, working_addresses, total_addresses, responded_count, not_responded_count,
-#                  active_time, max_threads, active_threads) -> None:
-#         self.working_addresses = working_addresses
-#         self.total_addresses = total_addresses
-#         self.responded_count = responded_count
-#         self.not_responded_count = not_responded_count
-#         self.active_time = active_time
-#         self.max_threads = max_threads
-#         self.active_threads = active_threads
 
     def __str__(self) -> str:
         text = "                                                                     \n"

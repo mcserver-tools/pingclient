@@ -3,6 +3,9 @@
 from threading import Thread
 from time import sleep
 
+# pylint: disable=E0401
+
+import console_manager
 from gui import Gui
 from server_finder import ServerFinder
 
@@ -19,20 +22,8 @@ class Client():
     def run(self):
         """Run the client"""
 
-        # Thread(target=self.add_thread_func).start()
         Thread(target=self._run_finder).start()
         self._start_gui()
-
-    def toggle_dcrpc(self):
-        """Toggle the discord rpc once"""
-
-        if self._finder.dcrpc_helper.initialized:
-            self._finder.dcrpc_helper.exit()
-        else:
-            self._finder.dcrpc_helper.initialize()
-
-    def pause(self):
-        self._finder.pause()
 
     def exit(self):
         """Exit after the current pass"""
@@ -49,36 +40,14 @@ class Client():
         """Exit immediately"""
 
         self._exit = True
-        self._gui.show_console()
-        self._finder.cancel()
+        console_manager.show_console()
+        self._finder.exit()
 
         while self._finder.running_threads > 0:
             if not self._exit:
                 return False
             sleep(1)
         return True
-
-    def _start_gui(self):
-        """Start the GUI"""
-
-        self._gui = Gui(self.toggle_dcrpc, self.pause, self.exit, self.cancel)
-        self._gui.initialize()
-        self._gui.run()
-
-    def _run_finder(self):
-        """Start pinging addresses"""
-
-        try:
-            while not self._exit:
-                self._finder = ServerFinder(self._finder_config[0], self._finder_config[1],
-                                            self._update_gui)
-                self._finder.run()
-        except Exception as e:
-            self._exit = True
-            sleep(1)
-            Thread(target=self._gui.exit, daemon=True).start()
-            sleep(1)
-            raise e
 
     def _init_finder(self):
         """Initialize the client"""
@@ -104,6 +73,44 @@ class Client():
             print("Continuing with default...")
             self._finder_config = (512, 3)
         print("")
+
+    def _run_finder(self):
+        """Start pinging addresses"""
+
+        try:
+            # loop until the client exits
+            while not self._exit:
+                self._finder = ServerFinder(self._finder_config[0], self._finder_config[1],
+                                            self._update_gui)
+                self._finder.run()
+        # catch all exceptions, exit properly, and then rethrow the exception
+        except Exception as exception:
+            self._exit = True
+            sleep(1)
+            Thread(target=self._gui.exit, daemon=True).start()
+            sleep(1)
+            raise exception
+
+    def _start_gui(self):
+        """Start the GUI"""
+
+        self._gui = Gui(self._toggle_dcrpc, self._pause, self.exit, self.cancel)
+        self._gui.initialize()
+        self._gui.run()
+
+    def _pause(self):
+        """Pause the client"""
+
+        self._finder.pause()
+
+    def _toggle_dcrpc(self):
+        """Toggle the discord rpc once"""
+
+        # if the discord rich resence is already active, deactivate it
+        if self._finder.dcrpc_helper.initialized:
+            self._finder.dcrpc_helper.exit()
+        else:
+            self._finder.dcrpc_helper.initialize()
 
     def _update_gui(self, session_info):
         """Add SessionInfo object to the GUI queue"""

@@ -4,7 +4,7 @@ import sys
 from socket import create_connection
 
 class Communicator():
-    """Class for communication with the server"""
+    """Class for communicating with the server"""
 
     def __init__(self) -> None:
         if len(sys.argv) == 1:
@@ -24,27 +24,25 @@ class Communicator():
             except (ConnectionRefusedError, TimeoutError):
                 tries -= 1
                 print(f"Connection to server failed, retrying {tries} more times...", end="\r")
+
+        print("Connection to server failed                                ")
         return False
 
     def get_address(self):
         """Get new address range"""
 
         sock = create_connection(self._address)
-
         self._send(sock, "GET address")
-        address = self._recv(sock)
 
-        return address
+        return self._recv(sock)
 
     def send_addresses(self, client_address, addresses):
         """Send working addresses"""
 
         sock = create_connection(self._address)
-
         self._send(sock, f"PUT address {client_address} {str(addresses)}")
-        answer = self._recv(sock)
 
-        return answer == "OK"
+        return self._recv(sock) == "OK"
 
     def send_keepalive(self, address):
         """Send keepalive request"""
@@ -54,28 +52,28 @@ class Communicator():
             self._send(sock, f"KEEPALIVE {address}")
             answer = self._recv(sock)
         except (ConnectionRefusedError, TimeoutError):
-            print(f"Sending keepalive to server failed, cancelling...")
+            print("Sending keepalive to server failed, cancelling...")
             return False
         return answer == "OK"
 
     def _send(self, sock, text):
-        """Send string to the given socket"""
+        """Send a string to the given socket"""
 
         sock.send(self._string_to_bytes(text))
 
     def _recv(self, sock):
-        """Receive string from the given socket"""
+        """Receive a string from the given socket"""
 
         return self._bytes_to_string(sock.recv(4096))
 
     @staticmethod
     def _string_to_bytes(input_text):
-        """Convert string to bytes object"""
+        """Convert a string to a bytes object"""
 
         return bytes(input_text, 'utf-8')
 
     @staticmethod
     def _bytes_to_string(input_bytes):
-        """Convert bytes object to string"""
+        """Convert a bytes object to a string"""
 
         return input_bytes.decode()

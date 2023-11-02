@@ -19,13 +19,14 @@ class FindThread():
         """Ping all stored addresses"""
 
         for address in self._addresses:
-            if self._server_finder.canceled:
+            # exit of the server_finder ist exiting
+            if self._server_finder.exited:
                 self._server_finder._running_threads -= 1
                 return
 
-            if self._server_finder.paused:
-                while self._server_finder.paused:
-                    sleep(0.1)
+            # sleep while the server_finder is sleeping
+            while self._server_finder.paused:
+                sleep(0.1)
             self._ping_address(address)
 
         self._server_finder._running_threads -= 1
@@ -36,13 +37,16 @@ class FindThread():
         try:
             JavaServer(address, 25565).ping(tries=1)
 
+            # if the ping didn't cause an exception, the address works and gets saved
             self._server_finder.active_addresses[self._index_c][1].append(address)
             self._server_finder._responded_count += 1
         except gaierror as gaierr:
             raise gaierror(f"Address {address} can't be read!") from gaierr
         except IOError:
+            # the most common outcome, if the ping timed out, the address didn't respond
             self._server_finder._not_responded_count += 1
         except IndexError as ierr:
+            # some addresses cause an bytearray out of bounds exception, those get ignored
             if "bytearray index out of range" in ierr.args:
                 self._server_finder._not_responded_count += 1
             else:
